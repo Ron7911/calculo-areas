@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Áreas</title>
+    <style>
+        body {
+            background-color: #333;
+            color: #00FFFF;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            margin: 20px;
+            padding: 10px;
+            background-color: #222;
+            border-radius: 8px;
+            display: inline-block;
+            width: 300px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 90%;
+            padding: 5px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #00FFFF;
+            background-color: #444;
+            color: #00FFFF;
+        }
+        button {
+            background-color: #00FFFF;
+            color: #222;
+            border: none;
+            padding: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #008C8C;
+        }
+        .resultado {
+            color: red;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .titulo {
+            color: white;
+            font-weight: bold;
+        }
+        canvas {
+            margin-top: 20px;
+            border: 1px solid #00FFFF;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="titulo">Cálculo de Áreas</h1>
+
+    <!-- Área Bajo la Curva -->
+    <div class="container">
+        <h2 class="titulo">Área Bajo la Curva</h2>
+        <input type="text" id="function" placeholder="Función (ej: 2*x^3 - 3*x^2 + x)">
+        <input type="number" id="lowerLimit" placeholder="Límite inferior (a)">
+        <input type="number" id="upperLimit" placeholder="Límite superior (b)">
+        <button onclick="calculateArea()">Calcular Área Bajo la Curva</button>
+        <div class="resultado" id="result"></div>
+        <canvas id="functionChart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- Área Entre Dos Curvas -->
+    <div class="container">
+        <h2 class="titulo">Área Entre Dos Curvas</h2>
+        <input type="text" id="function1" placeholder="Función 1 (ej: x^2)">
+        <input type="text" id="function2" placeholder="Función 2 (ej: x + 1)">
+        <input type="number" id="lowerLimit2" placeholder="Límite inferior (a)">
+        <input type="number" id="upperLimit2" placeholder="Límite superior (b)">
+        <button onclick="calculateAreaBetweenCurves()">Calcular Área Entre Curvas</button>
+        <div class="resultado" id="resultBetweenCurves"></div>
+        <canvas id="betweenCurvesChart" width="400" height="200"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@10.0.0/lib/browser/math.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function calculateArea() {
+            const funcInput = document.getElementById("function").value;
+            const lowerLimit = parseFloat(document.getElementById("lowerLimit").value);
+            const upperLimit = parseFloat(document.getElementById("upperLimit").value);
+            const resultDiv = document.getElementById("result");
+
+            if (!funcInput || isNaN(lowerLimit) || isNaN(upperLimit)) {
+                resultDiv.innerHTML = "Por favor, completa todos los campos.";
+                return;
+            }
+
+            const expr = math.compile(funcInput);
+            const area = integrate(expr, lowerLimit, upperLimit);
+            resultDiv.innerHTML = `El Área Bajo la Curva Es: <span>${area.toFixed(2)}</span>`;
+
+            generateGraph(funcInput, lowerLimit, upperLimit, 'functionChart');
+        }
+
+        function calculateAreaBetweenCurves() {
+            const funcInput1 = document.getElementById("function1").value;
+            const funcInput2 = document.getElementById("function2").value;
+            const lowerLimit = parseFloat(document.getElementById("lowerLimit2").value);
+            const upperLimit = parseFloat(document.getElementById("upperLimit2").value);
+            const resultDiv = document.getElementById("resultBetweenCurves");
+
+            if (!funcInput1 || !funcInput2 || isNaN(lowerLimit) || isNaN(upperLimit)) {
+                resultDiv.innerHTML = "Por favor, completa todos los campos.";
+                return;
+            }
+
+            const expr1 = math.compile(funcInput1);
+            const expr2 = math.compile(funcInput2);
+
+            const area1 = integrate(expr1, lowerLimit, upperLimit);
+            const area2 = integrate(expr2, lowerLimit, upperLimit);
+            const area = Math.abs(area1 - area2);
+            resultDiv.innerHTML = `El Área Entre Curvas Es: <span>${area.toFixed(2)}</span>`;
+
+            generateGraphBetweenCurves(funcInput1, funcInput2, lowerLimit, upperLimit, 'betweenCurvesChart');
+        }
+
+        function integrate(expr, a, b) {
+            const n = 1000;
+            const h = (b - a) / n;
+            let sum = 0;
+            for (let i = 0; i < n; i++) {
+                const x = a + i * h;
+                sum += expr.evaluate({ x }) * h;
+            }
+            return sum;
+        }
+
+        function generateGraph(func, a, b, canvasId) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const xValues = [];
+            const yValues = [];
+
+            for (let x = a; x <= b; x += 0.1) {
+                xValues.push(x);
+                const y = math.evaluate(func, { x });
+                yValues.push(y);
+            }
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                        label: 'f(x) = ' + func,
+                        data: yValues,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        fill: true,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'x'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'f(x)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateGraphBetweenCurves(func1, func2, a, b, canvasId) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const xValues = [];
+            const yValues1 = [];
+            const yValues2 = [];
+
+            for (let x = a; x <= b; x += 0.1) {
+                xValues.push(x);
+                yValues1.push(math.evaluate(func1, { x }));
+                yValues2.push(math.evaluate(func2, { x }));
+            }
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xValues,
+                    datasets: [
+                        {
+                            label: 'f1(x) = ' + func1,
+                            data: yValues1,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            fill: true,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'f2(x) = ' + func2,
+                            data: yValues2,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            fill: true,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'x'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'f(x)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
