@@ -4,28 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cálculo de Áreas</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@10.0.0/lib/browser/math.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
-            background-color: #333;
+            background-color: #1a1a1a;
             color: #00FFFF;
             font-family: Arial, sans-serif;
             text-align: center;
+            padding: 20px;
         }
         .container {
-            margin: 20px;
-            padding: 10px;
+            margin: 20px auto;
+            padding: 20px;
             background-color: #222;
             border-radius: 8px;
-            display: inline-block;
-            width: 300px;
+            display: none;
+            width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         input[type="text"], input[type="number"] {
-            width: 90%;
-            padding: 5px;
-            margin: 5px;
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px;
             border-radius: 5px;
             border: 1px solid #00FFFF;
-            background-color: #444;
+            background-color: #333;
             color: #00FFFF;
         }
         button {
@@ -36,41 +40,65 @@
             margin-top: 10px;
             cursor: pointer;
             font-weight: bold;
+            width: 95%;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #008C8C;
         }
+        select {
+            background-color: #00FFFF;
+            color: #222;
+            border: none;
+            padding: 10px;
+            margin: 20px 0;
+            font-weight: bold;
+            width: 400px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
         .resultado {
-            color: red;
+            color: #FF5733;
             margin-top: 20px;
             font-weight: bold;
         }
         .titulo {
-            color: white;
+            color: #FFCC00;
             font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
         }
-        canvas {
+        #chart, #chartBetweenCurves {
             margin-top: 20px;
+            width: 100%;
+            height: 400px;
             border: 1px solid #00FFFF;
+            background-color: #222;
         }
     </style>
 </head>
 <body>
     <h1 class="titulo">Cálculo de Áreas</h1>
 
+    <select id="areaOption" onchange="showAreaOption()">
+        <option value="">Seleccione una opción</option>
+        <option value="singleCurve">Área Bajo la Curva</option>
+        <option value="betweenCurves">Área Entre Dos Curvas</option>
+    </select>
+
     <!-- Área Bajo la Curva -->
-    <div class="container">
+    <div class="container" id="singleCurveContainer">
         <h2 class="titulo">Área Bajo la Curva</h2>
         <input type="text" id="function" placeholder="Función (ej: 2*x^3 - 3*x^2 + x)">
         <input type="number" id="lowerLimit" placeholder="Límite inferior (a)">
         <input type="number" id="upperLimit" placeholder="Límite superior (b)">
         <button onclick="calculateArea()">Calcular Área Bajo la Curva</button>
         <div class="resultado" id="result"></div>
-        <canvas id="functionChart" width="400" height="200"></canvas>
+        <div id="chart"></div>
     </div>
 
     <!-- Área Entre Dos Curvas -->
-    <div class="container">
+    <div class="container" id="betweenCurvesContainer">
         <h2 class="titulo">Área Entre Dos Curvas</h2>
         <input type="text" id="function1" placeholder="Función 1 (ej: x^2)">
         <input type="text" id="function2" placeholder="Función 2 (ej: x + 1)">
@@ -78,12 +106,22 @@
         <input type="number" id="upperLimit2" placeholder="Límite superior (b)">
         <button onclick="calculateAreaBetweenCurves()">Calcular Área Entre Curvas</button>
         <div class="resultado" id="resultBetweenCurves"></div>
-        <canvas id="betweenCurvesChart" width="400" height="200"></canvas>
+        <div id="chartBetweenCurves"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/mathjs@10.0.0/lib/browser/math.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        function showAreaOption() {
+            const selectedOption = document.getElementById("areaOption").value;
+            document.getElementById("singleCurveContainer").style.display = "none";
+            document.getElementById("betweenCurvesContainer").style.display = "none";
+
+            if (selectedOption === "singleCurve") {
+                document.getElementById("singleCurveContainer").style.display = "block";
+            } else if (selectedOption === "betweenCurves") {
+                document.getElementById("betweenCurvesContainer").style.display = "block";
+            }
+        }
+
         function calculateArea() {
             const funcInput = document.getElementById("function").value;
             const lowerLimit = parseFloat(document.getElementById("lowerLimit").value);
@@ -95,11 +133,10 @@
                 return;
             }
 
-            const expr = math.compile(funcInput);
-            const area = integrate(expr, lowerLimit, upperLimit);
+            const area = integrate(funcInput, lowerLimit, upperLimit);
             resultDiv.innerHTML = `El Área Bajo la Curva Es: <span>${area.toFixed(2)}</span>`;
 
-            generateGraph(funcInput, lowerLimit, upperLimit, 'functionChart');
+            generateGraph(funcInput, lowerLimit, upperLimit, 'chart');
         }
 
         function calculateAreaBetweenCurves() {
@@ -114,30 +151,24 @@
                 return;
             }
 
-            const expr1 = math.compile(funcInput1);
-            const expr2 = math.compile(funcInput2);
-
-            const area1 = integrate(expr1, lowerLimit, upperLimit);
-            const area2 = integrate(expr2, lowerLimit, upperLimit);
-            const area = Math.abs(area1 - area2);
+            const area = Math.abs(integrate(funcInput1, lowerLimit, upperLimit) - integrate(funcInput2, lowerLimit, upperLimit));
             resultDiv.innerHTML = `El Área Entre Curvas Es: <span>${area.toFixed(2)}</span>`;
 
-            generateGraphBetweenCurves(funcInput1, funcInput2, lowerLimit, upperLimit, 'betweenCurvesChart');
+            generateGraphBetweenCurves(funcInput1, funcInput2, lowerLimit, upperLimit, 'chartBetweenCurves');
         }
 
-        function integrate(expr, a, b) {
-            const n = 1000;
-            const h = (b - a) / n;
+        function integrate(func, a, b) {
+            const n = 1000; // Número de divisiones
+            const h = (b - a) / n; // Ancho de cada subintervalo
             let sum = 0;
             for (let i = 0; i < n; i++) {
-                const x = a + i * h;
-                sum += expr.evaluate({ x }) * h;
+                const x = a + i * h; // Valor x en el subintervalo
+                sum += math.evaluate(func, { x }) * h; // Sumar el área de cada rectángulo
             }
             return sum;
         }
 
-        function generateGraph(func, a, b, canvasId) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
+        function generateGraph(func, a, b, divId) {
             const xValues = [];
             const yValues = [];
 
@@ -147,41 +178,32 @@
                 yValues.push(y);
             }
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: xValues,
-                    datasets: [{
-                        label: 'f(x) = ' + func,
-                        data: yValues,
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                        fill: true,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'x'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'f(x)'
-                            }
-                        }
-                    }
-                }
-            });
+            const trace = {
+                x: xValues,
+                y: yValues,
+                mode: 'lines',
+                type: 'scatter',
+                name: `f(x) = ${func}`,
+                fill: 'tozeroy',
+                line: { color: 'rgba(255, 99, 132, 1)', width: 2 }
+            };
+
+            const data = [trace];
+            const layout = {
+                title: 'Gráfica de f(x)',
+                xaxis: { title: 'x', showgrid: true, zeroline: false, gridcolor: '#444' },
+                yaxis: { title: 'f(x)', showgrid: true, zeroline: false, gridcolor: '#444' },
+                showlegend: true,
+                paper_bgcolor: '#222',
+                plot_bgcolor: '#222',
+                font: { color: '#00FFFF' },
+                margin: { t: 40, b: 40, l: 40, r: 40 }
+            };
+
+            Plotly.newPlot(divId, data, layout);
         }
 
-        function generateGraphBetweenCurves(func1, func2, a, b, canvasId) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
+        function generateGraphBetweenCurves(func1, func2, a, b, divId) {
             const xValues = [];
             const yValues1 = [];
             const yValues2 = [];
@@ -192,47 +214,37 @@
                 yValues2.push(math.evaluate(func2, { x }));
             }
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: xValues,
-                    datasets: [
-                        {
-                            label: 'f1(x) = ' + func1,
-                            data: yValues1,
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                            fill: true,
-                            borderWidth: 2
-                        },
-                        {
-                            label: 'f2(x) = ' + func2,
-                            data: yValues2,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                            fill: true,
-                            borderWidth: 2
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'x'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'f(x)'
-                            }
-                        }
-                    }
-                }
-            });
+            const trace1 = {
+                x: xValues,
+                y: yValues1,
+                mode: 'lines',
+                type: 'scatter',
+                name: `f1(x) = ${func1}`,
+                line: { color: 'rgba(255, 99, 132, 1)', width: 2 }
+            };
+
+            const trace2 = {
+                x: xValues,
+                y: yValues2,
+                mode: 'lines',
+                type: 'scatter',
+                name: `f2(x) = ${func2}`,
+                line: { color: 'rgba(54, 162, 235, 1)', width: 2 }
+            };
+
+            const data = [trace1, trace2];
+            const layout = {
+                title: 'Gráfica de f1(x) y f2(x)',
+                xaxis: { title: 'x', showgrid: true, zeroline: false, gridcolor: '#444' },
+                yaxis: { title: 'f(x)', showgrid: true, zeroline: false, gridcolor: '#444' },
+                showlegend: true,
+                paper_bgcolor: '#222',
+                plot_bgcolor: '#222',
+                font: { color: '#00FFFF' },
+                margin: { t: 40, b: 40, l: 40, r: 40 }
+            };
+
+            Plotly.newPlot(divId, data, layout);
         }
     </script>
 </body>
