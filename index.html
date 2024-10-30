@@ -128,8 +128,8 @@
             const upperLimit = parseFloat(document.getElementById("upperLimit").value);
             const resultDiv = document.getElementById("result");
 
-            if (!funcInput || isNaN(lowerLimit) || isNaN(upperLimit) || lowerLimit >= upperLimit) {
-                resultDiv.innerHTML = "Por favor, completa todos los campos correctamente.";
+            if (!funcInput || isNaN(lowerLimit) || isNaN(upperLimit)) {
+                resultDiv.innerHTML = "Por favor, completa todos los campos.";
                 return;
             }
 
@@ -146,14 +146,12 @@
             const upperLimit = parseFloat(document.getElementById("upperLimit2").value);
             const resultDiv = document.getElementById("resultBetweenCurves");
 
-            if (!funcInput1 || !funcInput2 || isNaN(lowerLimit) || isNaN(upperLimit) || lowerLimit >= upperLimit) {
-                resultDiv.innerHTML = "Por favor, completa todos los campos correctamente.";
+            if (!funcInput1 || !funcInput2 || isNaN(lowerLimit) || isNaN(upperLimit)) {
+                resultDiv.innerHTML = "Por favor, completa todos los campos.";
                 return;
             }
 
-            const area1 = integrate(funcInput1, lowerLimit, upperLimit);
-            const area2 = integrate(funcInput2, lowerLimit, upperLimit);
-            const area = Math.abs(area1 - area2);
+            const area = Math.abs(integrate(funcInput1, lowerLimit, upperLimit) - integrate(funcInput2, lowerLimit, upperLimit));
             resultDiv.innerHTML = `El Área Entre Curvas Es: <span>${area.toFixed(2)}</span>`;
 
             generateGraphBetweenCurves(funcInput1, funcInput2, lowerLimit, upperLimit, 'chartBetweenCurves');
@@ -162,32 +160,78 @@
         function integrate(func, a, b) {
             const n = 10000; // Número de divisiones
             const h = (b - a) / n; // Ancho de cada subintervalo
-            let sum = 0;
-
-            // Método del Trapecio
-            for (let i = 0; i < n; i++) {
-                const x0 = a + i * h; // Punto inicial
-                const x1 = a + (i + 1) * h; // Punto final
-                sum += (math.evaluate(func, { x: x0 }) + math.evaluate(func, { x: x1 })) * h / 2; // Sumar el área de cada trapecio
+            let sum = (math.evaluate(func, { x: a }) + math.evaluate(func, { x: b })) / 2; // Sumar los extremos
+            for (let i = 1; i < n; i++) {
+                const x = a + i * h; // Valor x en el subintervalo
+                sum += math.evaluate(func, { x }); // Sumar el valor de la función
             }
-            return sum;
+            return sum * h; // Multiplicar por el ancho
         }
 
-        function generateGraph(func, a, b, divId) {
+        function generateGraph(func, a, b, chartId) {
             const xValues = [];
             const yValues = [];
-
             for (let x = a; x <= b; x += 0.1) {
                 xValues.push(x);
-                const y = math.evaluate(func, { x });
-                yValues.push(y);
+                yValues.push(math.evaluate(func, { x }));
             }
 
             const trace = {
                 x: xValues,
                 y: yValues,
                 mode: 'lines',
-                type: 'scatter',
-                name: `f(x) = ${func}`,
-                fill: 'tozeroy',
-                line: { color: 'rgba(255, 99
+                name: 'Función',
+                line: { color: '#00FFFF' }
+            };
+
+            const layout = {
+                title: 'Gráfica de la Función',
+                xaxis: { title: 'X' },
+                yaxis: { title: 'f(x)' },
+                paper_bgcolor: '#222',
+                plot_bgcolor: '#222',
+                font: { color: '#00FFFF' }
+            };
+
+            Plotly.newPlot(chartId, [trace], layout);
+        }
+
+        function generateGraphBetweenCurves(func1, func2, a, b, chartId) {
+            const xValues = [];
+            const yValues1 = [];
+            const yValues2 = [];
+            for (let x = a; x <= b; x += 0.1) {
+                xValues.push(x);
+                yValues1.push(math.evaluate(func1, { x }));
+                yValues2.push(math.evaluate(func2, { x }));
+            }
+
+            const trace1 = {
+                x: xValues,
+                y: yValues1,
+                mode: 'lines',
+                name: 'Función 1',
+                line: { color: '#00FFFF' }
+            };
+            const trace2 = {
+                x: xValues,
+                y: yValues2,
+                mode: 'lines',
+                name: 'Función 2',
+                line: { color: '#FF5733' }
+            };
+
+            const layout = {
+                title: 'Gráfica de las Dos Funciones',
+                xaxis: { title: 'X' },
+                yaxis: { title: 'f(x)' },
+                paper_bgcolor: '#222',
+                plot_bgcolor: '#222',
+                font: { color: '#00FFFF' }
+            };
+
+            Plotly.newPlot(chartId, [trace1, trace2], layout);
+        }
+    </script>
+</body>
+</html>
