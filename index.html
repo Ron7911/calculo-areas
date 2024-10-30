@@ -61,7 +61,7 @@
             const h = (b - a) / n; // Ancho de cada subintervalo
             let sum = 0;
             for (let i = 0; i < n; i++) {
-                const x = a + (i + 0.5) * h; // Usamos el punto medio
+                const x = a + i * h; // Valor x en el subintervalo
                 sum += math.evaluate(func, { x }); // Sumar el valor de la función
             }
             return sum * h; // Multiplicar por el ancho
