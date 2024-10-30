@@ -1,36 +1,37 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Declaracion de metadatos y librerias -->
-    <meta charset="UTF-8"> <!-- Establece el juego de caracteres a UTF-8 para compatibilidad -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ajusta la vista para dispositivos moviles -->
-    <title>Calculo de Areas</title> <!-- Titulo de la pagina -->
-
-    <!-- Carga de librerias externas para calculos y graficos -->
-    <script src="https://cdn.jsdelivr.net/npm/mathjs@10.0.0/lib/browser/math.js"></script> <!-- Libreria de matematicas -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> <!-- Libreria para graficos -->
-
-    <!-- Estilos de la pagina -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Áreas</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@10.0.0/lib/browser/math.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
-        /* Estilo del cuerpo de la pagina */
         body {
-            background-color: #1a1a1a; /* Color de fondo oscuro */
-            color: #00FFFF; /* Color de texto cian */
-            font-family: Arial, sans-serif; /* Fuente de texto */
-            text-align: center; /* Alineacion de texto al centro */
+            background-color: #1a1a1a;
+            color: #00FFFF;
+            font-family: Arial, sans-serif;
+            text-align: center;
             padding: 20px;
         }
-        /* Contenedor general */
         .container {
             margin: 20px auto;
             padding: 20px;
-            background-color: #222; /* Color de fondo oscuro para el contenedor */
-            border-radius: 8px; /* Bordes redondeados */
-            display: none; /* Oculto inicialmente */
+            background-color: #222;
+            border-radius: 8px;
+            display: none;
             width: 400px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        /* Estilos para entradas de texto y numeros */
+        select {
+            width: 200px;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #00FFFF;
+            background-color: #333;
+            color: #00FFFF;
+        }
         input[type="text"], input[type="number"] {
             width: calc(100% - 20px);
             padding: 10px;
@@ -40,7 +41,6 @@
             background-color: #333;
             color: #00FFFF;
         }
-        /* Estilos para botones */
         button {
             background-color: #00FFFF;
             color: #222;
@@ -50,37 +50,21 @@
             cursor: pointer;
             font-weight: bold;
             width: 95%;
-            transition: background-color 0.3s; /* Efecto de transicion en hover */
+            transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #008C8C; /* Color de fondo en hover */
+            background-color: #008C8C;
         }
-        /* Selector de opciones */
-        select {
-            background-color: #00FFFF;
-            color: #222;
-            border: none;
-            padding: 10px;
-            margin: 20px 0;
-            font-weight: bold;
-            width: 400px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        /* Resultado del calculo */
         .resultado {
             color: #FF5733;
             margin-top: 20px;
             font-weight: bold;
         }
-        /* Estilos de titulos */
         .titulo {
             color: #FFCC00;
             font-weight: bold;
             text-shadow: 1px 1px 2px #000;
         }
-        /* Estilos para graficos */
         #chart, #chartBetweenCurves {
             margin-top: 20px;
             width: 100%;
@@ -91,47 +75,37 @@
     </style>
 </head>
 <body>
-    <!-- Titulo principal -->
-    <h1 class="titulo">Calculo de Areas</h1>
-
-    <!-- Selector de opciones para tipo de calculo -->
+    <h1 class="titulo">Cálculo de Áreas</h1>
     <select id="areaOption" onchange="showAreaOption()">
-        <option value="">Seleccione una opcion</option>
-        <option value="singleCurve">Area Bajo la Curva</option>
-        <option value="betweenCurves">Area Entre Dos Curvas</option>
+        <option value="">Seleccione una opción</option>
+        <option value="singleCurve">Área Bajo la Curva</option>
+        <option value="betweenCurves">Área Entre Dos Curvas</option>
     </select>
-
-    <!-- Contenedor para el area bajo una curva -->
     <div class="container" id="singleCurveContainer">
-        <h2 class="titulo">Area Bajo la Curva</h2>
-        <input type="text" id="function" placeholder="Funcion (ej: 2*x^3 - 3*x^2 + x)">
-        <input type="number" id="lowerLimit" placeholder="Limite inferior (a)">
-        <input type="number" id="upperLimit" placeholder="Limite superior (b)">
-        <button onclick="calculateArea()">Calcular Area Bajo la Curva</button>
+        <h2 class="titulo">Área Bajo la Curva</h2>
+        <input type="text" id="function" placeholder="Función (ej: 2*x^3 - 3*x^2 + x)">
+        <input type="number" id="lowerLimit" placeholder="Límite inferior (a)">
+        <input type="number" id="upperLimit" placeholder="Límite superior (b)">
+        <button onclick="calculateArea()">Calcular Área Bajo la Curva</button>
         <div class="resultado" id="result"></div>
-        <div id="chart"></div> <!-- Div para el grafico de area bajo la curva -->
+        <div id="chart"></div>
     </div>
-
-    <!-- Contenedor para el area entre dos curvas -->
     <div class="container" id="betweenCurvesContainer">
-        <h2 class="titulo">Area Entre Dos Curvas</h2>
-        <input type="text" id="function1" placeholder="Funcion 1 (ej: x^2)">
-        <input type="text" id="function2" placeholder="Funcion 2 (ej: x + 1)">
-        <input type="number" id="lowerLimit2" placeholder="Limite inferior (a)">
-        <input type="number" id="upperLimit2" placeholder="Limite superior (b)">
-        <button onclick="calculateAreaBetweenCurves()">Calcular Area Entre Curvas</button>
+        <h2 class="titulo">Área Entre Dos Curvas</h2>
+        <input type="text" id="function1" placeholder="Función 1 (ej: x^2)">
+        <input type="text" id="function2" placeholder="Función 2 (ej: x + 1)">
+        <input type="number" id="lowerLimit2" placeholder="Límite inferior (a)">
+        <input type="number" id="upperLimit2" placeholder="Límite superior (b)">
+        <button onclick="calculateAreaBetweenCurves()">Calcular Área Entre Curvas</button>
         <div class="resultado" id="resultBetweenCurves"></div>
-        <div id="chartBetweenCurves"></div> <!-- Div para el grafico de area entre dos curvas -->
+        <div id="chartBetweenCurves"></div>
     </div>
 
     <script>
-        // Funcion que muestra el contenedor segun la opcion seleccionada
         function showAreaOption() {
             const selectedOption = document.getElementById("areaOption").value;
             document.getElementById("singleCurveContainer").style.display = "none";
             document.getElementById("betweenCurvesContainer").style.display = "none";
-
-            // Mostrar contenedor adecuado basado en la opcion
             if (selectedOption === "singleCurve") {
                 document.getElementById("singleCurveContainer").style.display = "block";
             } else if (selectedOption === "betweenCurves") {
@@ -139,28 +113,23 @@
             }
         }
 
-        // Calculo del area bajo una curva
         function calculateArea() {
             const funcInput = document.getElementById("function").value;
             const lowerLimit = parseFloat(document.getElementById("lowerLimit").value);
             const upperLimit = parseFloat(document.getElementById("upperLimit").value);
             const resultDiv = document.getElementById("result");
 
-            // Validacion de los campos
             if (!funcInput || isNaN(lowerLimit) || isNaN(upperLimit)) {
                 resultDiv.innerHTML = "Por favor, completa todos los campos.";
                 return;
             }
 
-            // Llamada a la funcion de integracion y despliegue de resultado
             const area = integrate(funcInput, lowerLimit, upperLimit);
-            resultDiv.innerHTML = `El Area Bajo la Curva Es: <span>${area.toFixed(2)}</span>`;
+            resultDiv.innerHTML = `El Área Bajo la Curva Es: <span>${area.toFixed(2)}</span>`;
 
-            // Generacion del grafico
-            generateGraph(funcInput, lowerLimit, upperLimit, 'chart');
+            generateGraph(funcInput, lowerLimit, upperLimit, 'chart', 'Gráfica');
         }
 
-        // Calculo del area entre dos curvas
         function calculateAreaBetweenCurves() {
             const funcInput1 = document.getElementById("function1").value;
             const funcInput2 = document.getElementById("function2").value;
@@ -168,29 +137,102 @@
             const upperLimit = parseFloat(document.getElementById("upperLimit2").value);
             const resultDiv = document.getElementById("resultBetweenCurves");
 
-            // Validacion de los campos
             if (!funcInput1 || !funcInput2 || isNaN(lowerLimit) || isNaN(upperLimit)) {
                 resultDiv.innerHTML = "Por favor, completa todos los campos.";
                 return;
             }
 
-            // Calculo y despliegue de resultado
-            const area = Math.abs(integrate(funcInput1, lowerLimit, upperLimit) - integrate(funcInput2, lowerLimit, upperLimit));
-            resultDiv.innerHTML = `El Area Entre Curvas Es: <span>${area.toFixed(2)}</span>`;
+            const area1 = integrate(funcInput1, lowerLimit, upperLimit);
+            const area2 = integrate(funcInput2, lowerLimit, upperLimit);
+            const area = Math.abs(area1 - area2);
+            resultDiv.innerHTML = `El Área Entre Curvas Es: <span>${area.toFixed(2)}</span>`;
 
-            // Generacion del grafico
-            generateGraphBetweenCurves(funcInput1, funcInput2, lowerLimit, upperLimit, 'chartBetweenCurves');
+            generateGraphBetweenCurves(funcInput1, funcInput2, lowerLimit, upperLimit, 'chartBetweenCurves', 'Gráfico');
         }
 
-        // Funcion para integrar numericamente
         function integrate(func, a, b) {
-            const n = 1000; // Numero de divisiones
-            const h = (b - a) / n; // Ancho de cada subintervalo
-            let sum = 0;
-            for (let i = 0; i < n; i++) {
+            const n = 10000;
+            const h = (b - a) / n;
+            let sum = 0.5 * (math.evaluate(func, { x: a }) + math.evaluate(func, { x: b }));
+
+            for (let i = 1; i < n; i++) {
                 const x = a + i * h;
-                sum += math.evaluate(func, { x }) * h; // Integracion por metodo de suma de Riemann
+                sum += math.evaluate(func, { x });
             }
-            return sum;
+            return sum * h;
         }
 
+        function generateGraph(func, a, b, elementId, title) {
+            const xValues = [];
+            const yValues = [];
+            for (let x = a; x <= b; x += 0.01) { // Ajustar el paso para suavizar la curva
+                xValues.push(x);
+                yValues.push(math.evaluate(func, { x }));
+            }
+
+            const data = [{
+                x: xValues,
+                y: yValues,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#FF0000', width: 2 }, // Línea más gruesa
+                name: title
+            }];
+
+            const layout = {
+                title: title,
+                xaxis: { title: 'x' },
+                yaxis: { title: 'f(x)' },
+                paper_bgcolor: '#222',
+                plot_bgcolor: '#222',
+                font: { color: '#FFC300' },
+                showlegend: false // Ocultar leyenda
+            };
+
+            Plotly.newPlot(elementId, data, layout);
+        }
+
+        function generateGraphBetweenCurves(func1, func2, a, b, elementId, title) {
+            const xValues = [];
+            const yValues1 = [];
+            const yValues2 = [];
+            for (let x = a; x <= b; x += 0.01) {
+                xValues.push(x);
+                yValues1.push(math.evaluate(func1, { x }));
+                yValues2.push(math.evaluate(func2, { x }));
+            }
+
+            const data = [
+                {
+                    x: xValues,
+                    y: yValues1,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#00FF00', width: 2 }, // Curva 1
+                    name: 'Función 1'
+                },
+                {
+                    x: xValues,
+                    y: yValues2,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#FF0000', width: 2 }, // Curva 2
+                    name: 'Función 2'
+                }
+            ];
+
+            const layout = {
+                title: title,
+                xaxis: { title: 'x' },
+                yaxis: { title: 'f(x)' },
+                paper_bgcolor: '#222',
+                plot_bgcolor: '#222',
+                font: { color: '#FFC300' },
+                showlegend: true // Mostrar leyenda
+            };
+
+            Plotly.newPlot(elementId, data, layout);
+        }
+    </script>
+</body>
+</html>
